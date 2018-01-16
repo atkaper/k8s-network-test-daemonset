@@ -24,8 +24,8 @@ the dns/node-OK counters from that to get to zero errors on your dashboard.
 ## Build using:
 
 ```
-docker build -t repositoty-url/k8s-network-test-daemonset:0.1 .
-docker push repositoty-url/k8s-network-test-daemonset:0.1
+docker build -t repository-url/k8s-network-test-daemonset:0.1 .
+docker push repository-url/k8s-network-test-daemonset:0.1
 ```
 
 ## Deploy
