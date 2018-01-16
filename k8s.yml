@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-network-test-daemonset
+  namespace: kube-system
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: k8s-network-test-daemonset-role
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods","endpoints","services"]
+  verbs: ["get", "watch", "list"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: k8s-network-test-daemonset-role-binding
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: k8s-network-test-daemonset
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: k8s-network-test-daemonset-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  generation: 1
+  labels:
+    daemonset: k8s-network-test-daemonset
+  name: k8s-network-test-daemonset
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      daemonset: k8s-network-test-daemonset
+  template:
+    metadata:
+      labels:
+        daemonset: k8s-network-test-daemonset
+      annotations:
+        prometheus.io/path: "/prometheus.report"
+        prometheus.io/port: "8123"
+        prometheus.io/scrape: "true"
+    spec:
+      imagePullSecrets:
+        - name: docker-registry
+        - name: docker-registry-secure
+      containers:
+      - command:
+        - /usr/src/app/entrypoint.sh
+        env:
+        - name: TZ
+          value: "Europe/Amsterdam"
+        - name: NODENAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        image: ##DOCKER_REGISTRY##/k8s-network-test-daemonset:##VERSION##
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health?livenessProbe
+            port: 8123
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health?readinessProbe
+            port: 8123
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+        name: k8s-network-test-daemonset
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: tz-config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
+      serviceAccountName: k8s-network-test-daemonset
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /usr/share/zoneinfo/Europe/Amsterdam
+        name: tz-config
+  templateGeneration: 1
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+
