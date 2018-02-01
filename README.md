@@ -19,7 +19,9 @@ Another way to look at it, is by enabling prometheus to poll the data. The data 
 poll all daemonset pods for this data. This way you can create a graph or counter on your dashboard with the network health.
 Note: this graph/counter is on our TODO list, so there's no example here. You should probably create an expression to
 calculate the number of kube-dns instances + 1, and the number of nodes and masters (compute to power of 2), and subtract
-the dns/node-OK counters from that to get to zero errors on your dashboard.
+the dns/node-OK counters from that to get to zero errors on your dashboard. For now we use a query which adds all error counts: 
+"sum(networktest_total_error_count)". Disadvantage of this; if a test pod is down, it does not report error's itself. Of course all
+other test pods will mark it as error, so it shows up anyway as non-zero errors ;-)
 
 ## Build using:
 
@@ -89,4 +91,9 @@ No status changes since previous test run.
 
 This daemonset has been tested on kubernetes 1.6.x (using flannel) and 1.8.4 (using calico).
 The last one being much more stable than the first one ;-)
+
+## Diagram
+
+![Diagram](k8s-network-test-daemonset-tests.png?raw=true "Test endpoints")
+
 
