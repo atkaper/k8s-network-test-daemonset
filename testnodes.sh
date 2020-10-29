@@ -214,7 +214,7 @@ echo "Nodes connect-error (from: $NODENAME $HOSTNAME): $NODEERRORLIST" >>/tmp/te
 prometheus node_ok_count `echo $NODEOKLIST | wc -w`
 prometheus node_error_count `echo $NODEERRORLIST | wc -w`
 
-prometheus total_ok_count $((dnsokcount+`echo $NODEOKLIST | wc -w`)) status_date "`date`"
+prometheus total_ok_count $((dnsokcount+`echo $NODEOKLIST | wc -w`))
 prometheus total_error_count $((dnserrorcount+`echo $NODEERRORLIST | wc -w`))
 
 touch /tmp/testnodes.log.previous
